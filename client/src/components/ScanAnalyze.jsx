@@ -13,6 +13,21 @@ const productDetailsData = [
   { id: 2, product: "Waffers", count: 29, remark: "Various snacks like Lay's and Kurkure are visible." },
 ];
 
+const getLocation = () =>
+  new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve({ latitude, longitude });
+        },
+        (error) => reject(error)
+      );
+    } else {
+      reject(new Error("Geolocation is not supported by this browser."));
+    }
+  });
+
 const ScanAnalyze = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -66,40 +81,116 @@ const ScanAnalyze = () => {
     video.srcObject = null;
   };
 
-  const handleAnalyzeFreshness = () => {
+  const handleAnalyzeFreshness = async () => {
     if (!image) {
       alert("Please upload or capture an image first.");
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      if (freshnessIndex < freshnessData.length) {
-        setResult(freshnessData[freshnessIndex]);
-        setFreshnessIndex((prevIndex) => prevIndex + 1);
+
+    try{
+      
+      const location = await getLocation();
+      console.log(location)
+
+
+
+
+      const response = await fetch('http://localhost:8000/api/v1/analyze_product_details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // Setting the content type to JSON
+        },
+        body: JSON.stringify({
+          image: image,
+          location:location, // Send the base64 image string
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.message); // Display the message from Flask
       } else {
-        setResult(null);
-        alert("No more freshness data available.");
+        alert("Error: " + data.error || "Something went wrong");
       }
-    }, 2000);
+      setLoading(false);
+
+
+    }catch(error){
+      setLoading(false);
+    }
+    // response_data = {
+    //   "id": "12345",
+    //   "product": "Product Name",
+    //   "count": 100,
+    //   "price": "₹500",
+    //   "expiry_date": "2025-12-31"
+    // }
+    // return jsonify(response_data)
+
+    // setTimeout(() => {
+    //   setLoading(false);
+    //   if (freshnessIndex < freshnessData.length) {
+    //     setResult(freshnessData[freshnessIndex]);
+    //     setFreshnessIndex((prevIndex) => prevIndex + 1);
+    //   } else {
+    //     setResult(null);
+    //     alert("No more freshness data available.");
+    //   }
+    // }, 2000);
   };
 
-  const handleAnalyzeDetails = () => {
+  const handleAnalyzeDetails = async () => {
     if (!image) {
       alert("Please upload or capture an image first.");
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      if (detailsIndex < productDetailsData.length) {
-        setResult(productDetailsData[detailsIndex]);
-        setDetailsIndex((prevIndex) => prevIndex + 1);
+
+  
+
+    try{
+
+      const location = await getLocation();
+
+
+
+
+
+      const response = await fetch('http://localhost:8000/api/v1/analyze_product_details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // Setting the content type to JSON
+        },
+        body: JSON.stringify({
+          image: image,
+          location:location // Send the base64 image string
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.message); // Display the message from Flask
       } else {
-        setResult(null);
-        alert("No more product detail data available.");
+        alert("Error: " + data.error || "Something went wrong");
       }
-    }, 2000);
+      setLoading(false);
+
+
+    }catch(error){
+      setLoading(false);
+    }
+
+
+
+    // setTimeout(() => {
+    //   setLoading(false);
+    //   if (detailsIndex < productDetailsData.length) {
+    //     setResult(productDetailsData[detailsIndex]);
+    //     setDetailsIndex((prevIndex) => prevIndex + 1);
+    //   } else {
+    //     setResult(null);
+    //     alert("No more product detail data available.");
+    //   }
+    // }, 2000);
   };
 
   return (

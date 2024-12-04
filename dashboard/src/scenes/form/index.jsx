@@ -7,7 +7,27 @@ import Header from "../../components/Header";
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
 
-  const handleFormSubmit = (values) => {
+  const handleFormSubmit = async (values) => {
+
+    try{
+      const response = await fetch("http://localhost:8080/api/members/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create user");
+      }
+      const data = await response.json();
+      console.log("User created successfully:", data);
+    }catch(error){
+      console.error("Error creating user:", error);
+      alert("Failed to create user. Please try again.");
+    }
+    
+
     console.log(values);
   };
 
@@ -93,6 +113,19 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
+                label="Age"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.age}
+                name="age"
+                error={!!touched.age && !!errors.age}
+                helperText={touched.age && errors.age}
+                sx={{ gridColumn: "span 4" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
                 label="Address 1"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -109,10 +142,10 @@ const Form = () => {
                 label="Role"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.address2}
-                name="address2"
-                error={!!touched.address2 && !!errors.address2}
-                helperText={touched.address2 && errors.address2}
+                value={values.role}
+                name="role"
+                error={!!touched.role && !!errors.role}
+                helperText={touched.role && errors.role}
                 sx={{ gridColumn: "span 4" }}
               />
             </Box>
@@ -139,16 +172,18 @@ const checkoutSchema = yup.object().shape({
     .string()
     .matches(phoneRegExp, "Phone number is not valid")
     .required("required"),
+  age: yup.number().required("required"),
   address1: yup.string().required("required"),
-  address2: yup.string().required("required"),
+  role: yup.string().required("required"),
 });
 const initialValues = {
   firstName: "",
   lastName: "",
   email: "",
   contact: "",
+  age:"",
   address1: "",
-  address2: "",
+  role: "",
 };
 
 export default Form;
