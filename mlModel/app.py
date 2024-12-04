@@ -5,6 +5,7 @@ from io import BytesIO
 import base64
 import os
 import uuid
+import awsDynamo as dynamodb
 from geopy.geocoders import Nominatim
 import google.generativeai as genai
 import httpx
@@ -42,6 +43,7 @@ def home():
 
 @app.route('/api/v1/analyze_product_details', methods=['POST'])
 def analyze_product_details():
+    data = request.get_json()
     if 'image' in request.json:
         # Handle base64 image
         print("hi")
@@ -50,7 +52,8 @@ def analyze_product_details():
         image = Image.open(BytesIO(base64.b64decode(image_data)))
         
         # Save the image
-        filename = str(uuid.uuid4())+'.png'  # You can generate a unique name or use timestamps
+        imgId = str(uuid.uuid4())
+        filename = imgId+'.png'  # You can generate a unique name or use timestamps
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         image.save(filepath)
         located = request.json['location']
@@ -85,9 +88,12 @@ def analyze_product_details():
 
 
 
+        response = dynamodb.addproductToTable(imgId, city) 
+        print(f"DynamoDB response: {response}")  
+
         return jsonify({
             'message': f'Image saved successfully at {filepath}',
-            'location': exactLocation
+            'location':  [city, state]
         })
 
 
@@ -95,4 +101,5 @@ def analyze_product_details():
     return jsonify({'error': 'No image provided'}), 400
 
 if __name__ == '__main__':
+    # dynamodb.CreatATableProduct()
     app.run(debug=True,port=8000)
