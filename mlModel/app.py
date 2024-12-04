@@ -6,9 +6,17 @@ import base64
 import os
 import uuid
 from geopy.geocoders import Nominatim
+import google.generativeai as genai
+import httpx
+import base64
 
 app = Flask(__name__)
 CORS(app)
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+GOOGLE_API_KEY=""
+genai.configure(api_key=GOOGLE_API_KEY)
+
 
 def get_location_from_coordinates(latitude, longitude):
     geolocator = Nominatim(user_agent="atharvasankheer@gmail.com")
@@ -36,6 +44,7 @@ def home():
 def analyze_product_details():
     if 'image' in request.json:
         # Handle base64 image
+        print("hi")
         image_data = request.json['image']
         image_data = image_data.split(',')[1]  # Strip off data URL part
         image = Image.open(BytesIO(base64.b64decode(image_data)))
@@ -58,6 +67,24 @@ def analyze_product_details():
         print(city)
         # pincode = location_parts[-2].strip()
         # country = location_parts[-1].strip()
+        with open(filepath, 'rb') as f:
+            image_data = f.read()
+
+        # Prepare the prompt and send the image to the Gemini API
+        prompt = "This image contains packaged products.Please analyze the image and provide:for each product:1)Product Name: 2)Product Category 3)Product Quantity 4)Product Count 5)Expiry Date (if available) 6)Freshness Index (based on visual cues) 7)Estimated Shelf Life 8) If there are multiple products,give answer for each"
+        response = model.generate_content(
+            [
+                {
+                    "mime_type": "image/jpeg",
+                    "data": base64.b64encode(image_data).decode("utf-8"),
+                },
+                prompt,
+            ]
+        )
+        print(response.text)
+
+
+
         return jsonify({
             'message': f'Image saved successfully at {filepath}',
             'location': exactLocation
