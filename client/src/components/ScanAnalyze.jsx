@@ -82,6 +82,7 @@ const ScanAnalyze = () => {
   };
 
   const handleAnalyzeFreshness = async () => {
+    console.log("kuch")
     if (!image) {
       alert("Please upload or capture an image first.");
       return;
@@ -89,7 +90,6 @@ const ScanAnalyze = () => {
     setLoading(true);
 
     try{
-      
       const location = await getLocation();
       console.log(location)
 

@@ -22,7 +22,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 
 # Function to check allowed image extensions
 def allowed_file(filename):
@@ -53,7 +53,9 @@ def analyze_product_details():
         location_parts = location.split(',')
         exactLocation = [part.strip() for part in location_parts[-4:]]
         # city = location_parts[-4].strip()
-        # state = location_parts[-3].strip()
+        state = location_parts[-3].strip()
+        city = location_parts[-4].strip()
+        print(city)
         # pincode = location_parts[-2].strip()
         # country = location_parts[-1].strip()
         return jsonify({
@@ -64,7 +66,6 @@ def analyze_product_details():
 
 
     return jsonify({'error': 'No image provided'}), 400
-    
 
 if __name__ == '__main__':
     app.run(debug=True,port=8000)
