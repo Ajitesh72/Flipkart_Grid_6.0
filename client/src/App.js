@@ -5,6 +5,7 @@ import SignIn from './components/SignIn';
 import ScanAnalyze from './components/ScanAnalyze';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
+import NotFoundPage from './components/NotFoundPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/scan" element={<ScanAnalyze />} />
+          <Route path="/*" element={<NotFoundPage/>}/>
         </Routes>
       </Router>
     </ThemeProvider>

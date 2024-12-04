@@ -1,26 +1,35 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Upload, Camera } from 'lucide-react';
 
 const freshnessData = [
-  { id: 1, product_name: "apple", freshness: "good",count:"1", remark: "It is a fresh apple" },
-  { id: 1, product_name: "banana", freshness: "poor",count:"3", remark: "It is not fresh" },
+  { id: 1, product_name: "apple", freshness: "good", count: "1", remark: "It is a fresh apple" },
+  { id: 2, product_name: "banana", freshness: "poor", count: "3", remark: "It is not fresh" },
 ];
 
 const productDetailsData = [
-  { id:1,product: "CORN FLAKES", count: 1, price: 20, expiry_date: "9 Months", },
-  { id:1,product: "Waffers", count: 29, remark: "The image shows a display of various snacks, primarily potato chips. The most prominent brands are Lay's and Kurkure. There are also some packs of Puffcorn and Solid Masti Twisterz. The chips come in different flavors and sizes, and some packs have promotions offering 25% more chips."},
+  { id: 1, product: "CORN FLAKES", count: 1, price: 20, expiry_date: "9 Months" },
+  { id: 2, product: "Waffers", count: 29, remark: "Various snacks like Lay's and Kurkure are visible." },
 ];
 
 const ScanAnalyze = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [image, setImage] = useState(null);
-  const [freshnessIndex, setFreshnessIndex] = useState(0); // Track freshness analysis index
-  const [detailsIndex, setDetailsIndex] = useState(0); // Track product details analysis index
+  const [freshnessIndex, setFreshnessIndex] = useState(0);
+  const [detailsIndex, setDetailsIndex] = useState(0);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  var user="";
+  var user = localStorage.getItem('user');
+
+  useEffect(() => {
+    const signedIn = localStorage.getItem('signedIn');
+    if (signedIn !== 'true') {
+      window.location.href = '/signin';
+    }
+  }, []);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -67,7 +76,7 @@ const ScanAnalyze = () => {
       setLoading(false);
       if (freshnessIndex < freshnessData.length) {
         setResult(freshnessData[freshnessIndex]);
-        setFreshnessIndex((prevIndex) => prevIndex + 1); // Increment the index for next analysis
+        setFreshnessIndex((prevIndex) => prevIndex + 1);
       } else {
         setResult(null);
         alert("No more freshness data available.");
@@ -85,7 +94,7 @@ const ScanAnalyze = () => {
       setLoading(false);
       if (detailsIndex < productDetailsData.length) {
         setResult(productDetailsData[detailsIndex]);
-        setDetailsIndex((prevIndex) => prevIndex + 1); // Increment the index for next analysis
+        setDetailsIndex((prevIndex) => prevIndex + 1);
       } else {
         setResult(null);
         alert("No more product detail data available.");
@@ -94,101 +103,54 @@ const ScanAnalyze = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'background.default',
-        padding: 3,
-      }}
-    >
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'background.default', padding: 3 }}>
+      <Typography variant="h4" color="text.primary" sx={{ textAlign: 'center' }} gutterBottom>
+        Hey {user} !! Welcome Back 
+      </Typography>
       <Typography variant="h4" color="text.primary" sx={{ textAlign: 'center' }} gutterBottom>
         Scan and Analyze Product
       </Typography>
 
-      <Paper 
-        elevation={3}
-        sx={{
-          p: 3,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 2,
-          maxWidth: 400,
-          width: '100%',
-        }}
-      >
+      <Paper elevation={3} sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, maxWidth: 400, width: '100%' }}>
         <Typography variant="h6" color="text.secondary">
           Upload your product image
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            component="label"
-            startIcon={<Upload />}
-          >
+          <Button variant="contained" component="label" startIcon={<Upload />}>
             Upload File
             <input type="file" hidden onChange={handleFileUpload} accept="image/*" />
           </Button>
 
-          <Button
-            variant="contained"
-            onClick={handleCameraCapture}
-            startIcon={<Camera />}
-          >
+          <Button variant="contained" onClick={handleCameraCapture} startIcon={<Camera />}>
             Camera
           </Button>
         </Box>
 
-        <Button
-          variant="contained"
-          sx={{ mt: 2 }}
-          onClick={captureImage}
-        >
+        <Button variant="contained" sx={{ mt: 2 }} onClick={captureImage}>
           Capture Image
         </Button>
 
         {!image && (
           <>
-            <video 
-              ref={videoRef} 
-              style={{ width: '100%', maxHeight: 400, objectFit: 'cover' }} 
-            />
+            <video ref={videoRef} style={{ width: '100%', maxHeight: 400, objectFit: 'cover' }} />
             <canvas ref={canvasRef} style={{ display: 'none' }} />
           </>
         )}
 
         {image && (
           <Box sx={{ mt: 2, width: '100%', aspectRatio: '4/3', position: 'relative' }}>
-            <img 
-              src={image} 
-              alt="Uploaded product" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
+            <img src={image} alt="Uploaded product" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </Box>
         )}
       </Paper>
 
       <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleAnalyzeFreshness}
-          disabled={!image || loading}
-        >
+        <Button variant="contained" color="secondary" onClick={handleAnalyzeFreshness} disabled={!image || loading}>
           Analyze Freshness
         </Button>
 
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleAnalyzeDetails}
-          disabled={!image || loading}
-        >
+        <Button variant="contained" color="secondary" onClick={handleAnalyzeDetails} disabled={!image || loading}>
           Analyze Product Details
         </Button>
       </Box>

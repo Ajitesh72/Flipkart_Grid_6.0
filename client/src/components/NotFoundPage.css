@@ -1,0 +1,44 @@
+.not-found-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .not-found-title {
+    font-size: 6rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .not-found-subtitle {
+    font-size: 2rem;
+    margin: 10px 0;
+  }
+  
+  .not-found-text {
+    font-size: 1.2rem;
+    margin: 20px 0;
+    color: #666;
+  }
+  
+  .go-back-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .go-back-button:hover {
+    background-color: #0056b3;
+  }
+  

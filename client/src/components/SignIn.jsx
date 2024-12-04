@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { Button, TextField, Box, Typography, Grid } from '@mui/material';
+import { Button, TextField, Box, Typography, Grid, Alert } from '@mui/material';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
 
   const handleSignIn = () => {
-    // Simple sign-in logic (for now just redirect)
-    window.location.href = '/scan';
+    // Check for valid credentials
+    if (email === 'athsankhe@gmail.com' && password === 'ath123') {
+      // Store signed-in status in localStorage
+      localStorage.setItem('signedIn', 'true');
+      localStorage.setItem('user', 'athsankhe');
+      // Redirect to /scan
+      window.location.href = '/scan';
+    } else {
+      // Show error message
+      setError(true);
+    }
   };
 
   return (
@@ -31,10 +41,15 @@ const SignIn = () => {
           padding: 3,
         }}
       >
-        <Box>
+        <Box sx={{ width: '100%', maxWidth: 400 }}>
           <Typography variant="h4" color="text.primary" gutterBottom>
             Sign In
           </Typography>
+          {error && (
+            <Alert severity="error" onClose={() => setError(false)}>
+              Please use proper credentials.
+            </Alert>
+          )}
           <TextField
             label="Email"
             variant="outlined"
@@ -70,21 +85,17 @@ const SignIn = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          // backgroundColor: 'background.paper',
-          backgroundColor: "#000",
-
+          backgroundColor: '#000',
         }}
       >
         <Box
           component="img"
-          src="https://i.ytimg.com/vi/V69Fwk48MCE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAQ7gxNyTA7pp_cwGIuNbipz3IbZA" // Replace with your image path
+          src="https://i.ytimg.com/vi/V69Fwk48MCE/hq720.jpg"
           alt="Sign In Image"
           sx={{
             maxWidth: '100%',
             maxHeight: '100%',
             objectFit: 'cover',
-            background:"#111",
-            backgroundColor:"#111"
           }}
         />
       </Grid>
