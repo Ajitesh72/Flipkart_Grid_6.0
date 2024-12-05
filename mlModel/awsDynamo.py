@@ -1,5 +1,6 @@
 import boto3
 from decouple import config
+from uuid import uuid4
 AWS_ACCESS_KEY_ID     = config("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
 REGION_NAME           = config("REGION_NAME")
@@ -26,10 +27,6 @@ def CreatATableProduct():
                 {
                     'AttributeName': 'id',        # Name of the attribute
                     'AttributeType': 'S'          # N -> Number
-                },
-                {
-                    'AttributeName': 'location',  # Name of the second attribute
-                    'AttributeType': 'S'          # S -> String (location will be a string)
                 }
             ],
             TableName = 'product',  # Name of the table
@@ -37,11 +34,8 @@ def CreatATableProduct():
                 {
                     'AttributeName': 'id',  # Partition key
                     'KeyType': 'HASH'       # HASH -> partition key
-                },
-                {
-                    'AttributeName': 'location',  # Sort key
-                    'KeyType': 'RANGE'            # RANGE -> sort key
                 }
+
             ],
             ProvisionedThroughput={
                 'ReadCapacityUnits': 5,  # Set the read capacity units (e.g., 5)
@@ -66,4 +60,42 @@ def addproductToTable(id, location):
     )
     return response
 
+
+def bulk_insert(products,city,zipcode):
+    # Reference the DynamoDB table
+    table = resource.Table('product')
+
+    # Using batch_writer to insert multiple items at once
+    with table.batch_writer() as writer:
+        for product in products:
+            writer.put_item(Item={
+                'id': str(uuid4()),  # Generate a unique ID for each product
+                'product_name': product['product_name'],
+                'product_category': product['product_category'],
+                'product_count': product['product_count'],
+                'product_price': product['product_price'],
+                'expiry_date': product['expiry_date'],
+                'estimated_shelf_life': product['estimated_shelf_life'],
+                'city': city,
+                'zipcode': zipcode
+            })
+    
+
+def fetch_all_products():
+    # Reference the DynamoDB table
+    table = client.Table('product')
+
+    # Scan the table to get all items
+    response = table.scan()
+
+    # Get the list of items
+    products = response.get('Items', [])
+
+    # Handling pagination if more items exist
+    while 'LastEvaluatedKey' in response:
+        # Continue scanning to get the next set of results
+        response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+        products.extend(response.get('Items', []))
+
+    return products
 

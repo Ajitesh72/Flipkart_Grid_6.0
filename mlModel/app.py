@@ -10,17 +10,30 @@ from geopy.geocoders import Nominatim
 import google.generativeai as genai
 import httpx
 import base64
+from decouple import config
+import json
+import typing_extensions as typing
+import PIL.Image
 
 app = Flask(__name__)
 CORS(app)
 
-model = genai.GenerativeModel("gemini-1.5-flash")
-GOOGLE_API_KEY=""
+class Product(typing.TypedDict):
+    product_name: str
+    product_category: str
+    product_count: str
+    product_price: str
+    expiry_date: str
+    estimated_shelf_life: str
+
+model = genai.GenerativeModel("gemini-1.5-pro-latest")
+GOOGLE_API_KEY=config("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
 
+
 def get_location_from_coordinates(latitude, longitude):
-    geolocator = Nominatim(user_agent="atharvasankheer@gmail.com")
+    geolocator = Nominatim(user_agent="atharvasankhe12@gmail.com")
     location = geolocator.reverse((latitude, longitude), language='en')
     if location:
         return location.address
@@ -65,35 +78,78 @@ def analyze_product_details():
         location_parts = location.split(',')
         exactLocation = [part.strip() for part in location_parts[-4:]]
         # city = location_parts[-4].strip()
-        state = location_parts[-3].strip()
+        zipcode = location_parts[-2].strip()
         city = location_parts[-4].strip()
         print(city)
         # pincode = location_parts[-2].strip()
         # country = location_parts[-1].strip()
-        with open(filepath, 'rb') as f:
-            image_data = f.read()
+        # with open(filepath, 'rb') as f:
+        #     image_data = f.read()
+        
+        
+
 
         # Prepare the prompt and send the image to the Gemini API
-        prompt = "This image contains packaged products.Please analyze the image and provide:for each product:1)Product Name: 2)Product Category 3)Product Quantity 4)Product Count 5)Expiry Date (if available) 6)Freshness Index (based on visual cues) 7)Estimated Shelf Life 8) If there are multiple products,give answer for each"
-        response = model.generate_content(
-            [
-                {
-                    "mime_type": "image/jpeg",
-                    "data": base64.b64encode(image_data).decode("utf-8"),
-                },
-                prompt,
-            ]
+        # prompt = "This image contains packaged products.Please analyze the image and provide:for each product:1)Product Name: 2)Product Category 3)Product Quantity 4)Product Count 5)Expiry Date (if available) 6)Freshness Index (based on visual cues) 7)Estimated Shelf Life 8) If there are multiple products,give answer for each"
+        prompt = """This image contains packaged products. Please analyze the image and provide the details for each product in the following structured format:
+        {
+            "product_name": "<Product Name (if available or mention 'NULL' in the value)>>",
+            "product_category": "<Product Category (if available or mention 'NULL' in the value)>>",
+            "product_count": "<Product Count (if available or mentiod '1' in the value)>>",
+            "product_prcie": "<Product Price (if available or mention 'NULL' in the value)>",
+            "expiry_date": "<Expiry Date (if available or mention 'NULL' in the value)>",            
+            "estimated_shelf_life": "<Estimated Shelf Life if available or mentioned 'NULL' in the value>"
+        }
+        If there are multiple products, provide the details for each product as separate objects in an array.
+        For example:
+        [
+            {
+                "product_name": "Apple",
+                "product_category": "Fruit",
+                "product_count": '5',
+                "product_price": 10,
+                "expiry_date": "null",
+                "estimated_shelf_life": "2 weeks"
+            },
+            {
+                "product_name": "Milk",
+                "product_category": "Dairy",
+                "product_count": '1',
+                "product_price": null,
+                "expiry_date": "2024-12-15",
+                "estimated_shelf_life": "1 week"
+            }
+        ]
+
+
+        If some details are not mentioned then return "null" in the value 
+
+        
+        """
+
+        result = model.generate_content(
+        [prompt, image]
+            #     generation_config=genai.GenerationConfig(
+            #     response_mime_type="application/json", response_schema=list[Product]
+            # ),
         )
-        print(response.text)
+        # print(result.text)
+        json_string_cleaned = result.text.strip().replace("```json", "").replace("```", "").strip()
+        ans = json.loads(json_string_cleaned)
+        print(ans)
+
+
+        # parsed_data = json.loads(result.text)
 
 
 
-        response = dynamodb.addproductToTable(imgId, city) 
-        print(f"DynamoDB response: {response}")  
+
+        response = dynamodb.bulk_insert(ans,city,zipcode)
+        # print(f"DynamoDB response: {response}")  
 
         return jsonify({
             'message': f'Image saved successfully at {filepath}',
-            'location':  [city, state]
+            'location':  [city, zipcode]
         })
 
 
