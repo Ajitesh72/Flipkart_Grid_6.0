@@ -221,6 +221,15 @@ def get_product_details():
         return jsonify(response['data'])
     else:
         return jsonify({"message": "some error occured"})
+    
+@app.route('/api/v1/get_food_details', methods=['GET'])
+def get_food_details():
+    response = dynamodb.fetch_all_foods()
+    print(response)
+    if response["error"] == False:
+        return jsonify(response['data'])
+    else:
+        return jsonify({"message": "some error occured"})
 
 if __name__ == '__main__':
     # dynamodb.CreatATableFood()

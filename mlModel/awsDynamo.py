@@ -158,22 +158,34 @@ def fetch_all_products():
         result['error'] = True
         result['data'] = []
         return result
+    
+def fetch_all_foods():
+    result = {
+        "error": False,
+        "data": [], 
+    }
+    try:
+        # Reference the DynamoDB table
+        table = resource.Table('food')
 
-# def fetch_all_products():
-#     # Reference the DynamoDB table
-#     table = client.Table('product')
+        # Scan the table to get all items
+        response = table.scan()
 
-#     # Scan the table to get all items
-#     response = table.scan()
+        # Get the list of items
+        foods = response["Items"]
 
-#     # Get the list of items
-#     products = response.get('Items', [])
+        # Handling pagination if more items exist
+        while 'LastEvaluatedKey' in response:
+            # Continue scanning to get the next set of results
+            response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+            foods.extend(response["Items"])
+        result["error"] = False
+        result['data'] = foods
+        return result
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        result['error'] = True
+        result['data'] = []
+        return result
 
-#     # Handling pagination if more items exist
-#     while 'LastEvaluatedKey' in response:
-#         # Continue scanning to get the next set of results
-#         response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-#         products.extend(response.get('Items', []))
-
-#     return products
 
