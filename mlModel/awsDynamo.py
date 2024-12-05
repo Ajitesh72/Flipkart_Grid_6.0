@@ -79,6 +79,7 @@ def bulk_insert(products,city,zipcode):
                 'city': city,
                 'zipcode': zipcode
             })
+    return "success"
     
 
 def fetch_all_products():

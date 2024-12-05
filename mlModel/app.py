@@ -144,13 +144,10 @@ def analyze_product_details():
 
 
 
-        response = dynamodb.bulk_insert(ans,city,zipcode)
+        # dynamodb.bulk_insert(ans,city,zipcode)
         # print(f"DynamoDB response: {response}")  
 
-        return jsonify({
-            'message': f'Image saved successfully at {filepath}',
-            'location':  [city, zipcode]
-        })
+        return jsonify(ans)
 
 
 
