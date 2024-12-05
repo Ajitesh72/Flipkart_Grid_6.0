@@ -4,7 +4,6 @@ import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 import Dashboard from "./scenes/dashboard";
 import Team from "./scenes/team";
-import Invoices from "./scenes/invoices";
 import ProductDetails from "./scenes/product_details";
 import Bar from "./scenes/bar";
 import Form from "./scenes/form";
@@ -16,6 +15,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import Calendar from "./scenes/calendar/calendar";
 import NotFoundPage from "./components/NotFoundPage";
+import FreshnessDetails from "./scenes/freshness_details";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -33,7 +33,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/team" element={<Team />} />
               <Route path="/product_details" element={<ProductDetails />} />
-              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/freshness_details" element={<FreshnessDetails />} />
               <Route path="/form" element={<Form />} />
               <Route path="/bar" element={<Bar />} />
               <Route path="/pie" element={<Pie />} />
