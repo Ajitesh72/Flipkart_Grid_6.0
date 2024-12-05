@@ -48,20 +48,49 @@ def CreatATableProduct():
     table.meta.client.get_waiter('table_exists').wait(TableName='product')
     print("Table is now active.")
 
-def addproductToTable(id, location):
-    productTable = resource.Table('product')
-    response = productTable.put_item(
-        Item = {
+def CreatATableFood():
+    existing_tables = client.list_tables()['TableNames']
+    if 'food' not in existing_tables:
+        client.create_table(
+            AttributeDefinitions = [
+                {
+                    'AttributeName': 'id',        # Name of the attribute
+                    'AttributeType': 'S'          # N -> Number
+                }
+            ],
+            TableName = 'food',  # Name of the table
+            KeySchema = [
+                {
+                    'AttributeName': 'id',  # Partition key
+                    'KeyType': 'HASH'       # HASH -> partition key
+                }
 
-            'id':id,
-            'location'  : location,
+            ],
+            ProvisionedThroughput={
+                'ReadCapacityUnits': 5,  # Set the read capacity units (e.g., 5)
+                'WriteCapacityUnits': 5  # Set the write capacity units (e.g., 5)
+            }
             
-        }
-    )
-    return response
+        )
+
+    table = resource.Table('food')
+    table.meta.client.get_waiter('table_exists').wait(TableName='food')
+    print("Table is now active.")
+
+# def addproductToTable(id, location):
+#     productTable = resource.Table('product')
+#     response = productTable.put_item(
+#         Item = {
+
+#             'id':id,
+#             'location'  : location,
+            
+#         }
+#     )
+#     return response
 
 
-def bulk_insert(products,city,zipcode):
+def bulk_insert_product(products,city,zipcode):
     # Reference the DynamoDB table
     table = resource.Table('product')
 
@@ -80,23 +109,43 @@ def bulk_insert(products,city,zipcode):
                 'zipcode': zipcode
             })
     return "success"
+
+def bulk_insert_food(foods,city,zipcode):
+    # Reference the DynamoDB table
+    table = resource.Table('food')
+
+    # Using batch_writer to insert multiple items at once
+    with table.batch_writer() as writer:
+        for food in foods:
+            writer.put_item(Item={
+                'id': str(uuid4()),  # Generate a unique ID for each product
+                'food_name': food['food_name'],
+                'food_category': food['food_category'],
+                'food_count': food['food_count'],
+                'food_price': food['food_price'],
+                'freshness': food['freshness'],
+                'estimated_shelf_life': food['estimated_shelf_life'],
+                'city': city,
+                'zipcode': zipcode
+            })
+    return "success"
     
 
-def fetch_all_products():
-    # Reference the DynamoDB table
-    table = client.Table('product')
+# def fetch_all_products():
+#     # Reference the DynamoDB table
+#     table = client.Table('product')
 
-    # Scan the table to get all items
-    response = table.scan()
+#     # Scan the table to get all items
+#     response = table.scan()
 
-    # Get the list of items
-    products = response.get('Items', [])
+#     # Get the list of items
+#     products = response.get('Items', [])
 
-    # Handling pagination if more items exist
-    while 'LastEvaluatedKey' in response:
-        # Continue scanning to get the next set of results
-        response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-        products.extend(response.get('Items', []))
+#     # Handling pagination if more items exist
+#     while 'LastEvaluatedKey' in response:
+#         # Continue scanning to get the next set of results
+#         response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+#         products.extend(response.get('Items', []))
 
-    return products
+#     return products
 

@@ -58,45 +58,36 @@ def home():
 def analyze_product_details():
     data = request.get_json()
     if 'image' in request.json:
+        
         # Handle base64 image
-        print("hi")
         image_data = request.json['image']
         image_data = image_data.split(',')[1]  # Strip off data URL part
         image = Image.open(BytesIO(base64.b64decode(image_data)))
-        
-        # Save the image
         imgId = str(uuid.uuid4())
         filename = imgId+'.png'  # You can generate a unique name or use timestamps
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         image.save(filepath)
-        located = request.json['location']
         print(f"Image saved successfully at {filepath}")
+
+
+
+        located = request.json['location']
         print(f"Location: {located}")
         location = get_location_from_coordinates(located.get('latitude'),located.get('longitude'))
-        
-        print(location)
         location_parts = location.split(',')
         exactLocation = [part.strip() for part in location_parts[-4:]]
-        # city = location_parts[-4].strip()
         zipcode = location_parts[-2].strip()
         city = location_parts[-4].strip()
         print(city)
-        # pincode = location_parts[-2].strip()
-        # country = location_parts[-1].strip()
-        # with open(filepath, 'rb') as f:
-        #     image_data = f.read()
-        
-        
 
 
-        # Prepare the prompt and send the image to the Gemini API
-        # prompt = "This image contains packaged products.Please analyze the image and provide:for each product:1)Product Name: 2)Product Category 3)Product Quantity 4)Product Count 5)Expiry Date (if available) 6)Freshness Index (based on visual cues) 7)Estimated Shelf Life 8) If there are multiple products,give answer for each"
+        # model part
         prompt = """This image contains packaged products. Please analyze the image and provide the details for each product in the following structured format:
         {
             "product_name": "<Product Name (if available or mention 'NULL' in the value)>>",
             "product_category": "<Product Category (if available or mention 'NULL' in the value)>>",
             "product_count": "<Product Count (if available or mentiod '1' in the value)>>",
-            "product_prcie": "<Product Price (if available or mention 'NULL' in the value)>",
+            "product_price": "<Product Price (if available or mention 'NULL' in the value)>",
             "expiry_date": "<Expiry Date (if available or mention 'NULL' in the value)>",            
             "estimated_shelf_life": "<Estimated Shelf Life if available or mentioned 'NULL' in the value>"
         }
@@ -120,39 +111,108 @@ def analyze_product_details():
                 "estimated_shelf_life": "1 week"
             }
         ]
-
-
         If some details are not mentioned then return "null" in the value 
-
-        
         """
-
         result = model.generate_content(
         [prompt, image]
             #     generation_config=genai.GenerationConfig(
             #     response_mime_type="application/json", response_schema=list[Product]
             # ),
         )
-        # print(result.text)
         json_string_cleaned = result.text.strip().replace("```json", "").replace("```", "").strip()
         ans = json.loads(json_string_cleaned)
         print(ans)
 
-
-        # parsed_data = json.loads(result.text)
-
-
-
-
-        # dynamodb.bulk_insert(ans,city,zipcode)
-        # print(f"DynamoDB response: {response}")  
-
+        #send to dynamodb
+        dynamodb.bulk_insert_product(ans,city,zipcode)
         return jsonify(ans)
 
+    return jsonify({'error': 'No image provided'}), 400
 
+
+@app.route('/api/v1/analyze_freshness', methods=['POST'])
+def analyze_freshness():
+    data = request.get_json()
+    if 'image' in request.json:
+        
+        # Handle base64 image
+        image_data = request.json['image']
+        image_data = image_data.split(',')[1]  # Strip off data URL part
+        image = Image.open(BytesIO(base64.b64decode(image_data)))
+        imgId = str(uuid.uuid4())
+        filename = imgId+'.png'  # You can generate a unique name or use timestamps
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        image.save(filepath)
+        print(f"Image saved successfully at {filepath}")
+
+
+
+        located = request.json['location']
+        print(f"Location: {located}")
+        location = get_location_from_coordinates(located.get('latitude'),located.get('longitude'))
+        location_parts = location.split(',')
+        exactLocation = [part.strip() for part in location_parts[-4:]]
+        zipcode = location_parts[-2].strip()
+        city = location_parts[-4].strip()
+        print(city)
+
+
+        # model part
+        prompt = """This image contains foods or vegeatbles. Please analyze the image and provide the details for each fruit or vegetable in the following structured format:
+        {
+            "food_name": "<Product Name >>",
+            "food_category": "<Product Category >>",
+            "food_count": "<Product Count (count the number of item for eg. "2" if two fresh apple)>>",
+            "food_price": "<Product Price (if available or mention 'NULL' in the value)>",
+            "freshness": "<Freshnes of food (High, Good,Medium,Poor) (to be estimated by analyzing the image and condition of food)>",            
+            "estimated_shelf_life": "<Estimated Shelf Life if available or mentioned 'NULL' in the value>"
+        }
+        If there are multiple products, provide the details for each product as separate objects in an array.
+        For example:
+        [
+            {
+                "food_name": "Apple",
+                "food_category": "Fruit",
+                "food_count": '5',
+                "food_price": "NULL",
+                "freshness": "High",
+                "estimated_shelf_life": "2 weeks"
+            },
+            {
+                "food_name": "Carrot",
+                "food_category": "Vegetable",
+                "food_count": '2',
+                "food_price": "NULL",
+                "freshness": "Good",
+                "estimated_shelf_life": "1 week"
+            },
+            {
+                "food_name": "Apple",
+                "food_category": "Fruit",
+                "food_count": '2',
+                "food_price": "NULL",
+                "freshness": "Poor",
+                "estimated_shelf_life": "0 weeks"
+            }
+        ]
+        If some details are not mentioned then return "null" in the value 
+        """
+        result = model.generate_content(
+        [prompt, image]
+            #     generation_config=genai.GenerationConfig(
+            #     response_mime_type="application/json", response_schema=list[Product]
+            # ),
+        )
+        json_string_cleaned = result.text.strip().replace("```json", "").replace("```", "").strip()
+        ans = json.loads(json_string_cleaned)
+        print(ans)
+
+        #send to dynamodb
+        dynamodb.bulk_insert_food(ans,city,zipcode)
+        return jsonify(ans)
 
     return jsonify({'error': 'No image provided'}), 400
 
 if __name__ == '__main__':
-    # dynamodb.CreatATableProduct()
+    # dynamodb.CreatATableFood()
     app.run(debug=True,port=8000)

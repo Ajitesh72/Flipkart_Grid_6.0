@@ -14,38 +14,38 @@ import {
 import CircularProgress from "@mui/material/CircularProgress";
 import { Upload, Camera } from "lucide-react";
 
-const freshnessData = [
-  {
-    id: 1,
-    product_name: "apple",
-    freshness: "good",
-    count: "1",
-    remark: "It is a fresh apple",
-  },
-  {
-    id: 2,
-    product_name: "banana",
-    freshness: "poor",
-    count: "3",
-    remark: "It is not fresh",
-  },
-];
+// const freshnessData = [
+//   {
+//     id: 1,
+//     product_name: "apple",
+//     freshness: "good",
+//     count: "1",
+//     remark: "It is a fresh apple",
+//   },
+//   {
+//     id: 2,
+//     product_name: "banana",
+//     freshness: "poor",
+//     count: "3",
+//     remark: "It is not fresh",
+//   },
+// ];
 
-const productDetailsData = [
-  {
-    id: 1,
-    product: "CORN FLAKES",
-    count: 1,
-    price: 20,
-    expiry_date: "9 Months",
-  },
-  {
-    id: 2,
-    product: "Waffers",
-    count: 29,
-    remark: "Various snacks like Lay's and Kurkure are visible.",
-  },
-];
+// const productDetailsData = [
+//   {
+//     id: 1,
+//     product: "CORN FLAKES",
+//     count: 1,
+//     price: 20,
+//     expiry_date: "9 Months",
+//   },
+//   {
+//     id: 2,
+//     product: "Waffers",
+//     count: 29,
+//     remark: "Various snacks like Lay's and Kurkure are visible.",
+//   },
+// ];
 
 const getLocation = () =>
   new Promise((resolve, reject) => {
@@ -66,8 +66,9 @@ const ScanAnalyze = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [image, setImage] = useState(null);
-  const [freshnessIndex, setFreshnessIndex] = useState(0);
-  const [detailsIndex, setDetailsIndex] = useState(0);
+  const [activeMode, setActiveMode] = useState("");
+  // const [freshnessIndex, setFreshnessIndex] = useState(0);
+  // const [detailsIndex, setDetailsIndex] = useState(0);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   var user = "";
@@ -125,13 +126,14 @@ const ScanAnalyze = () => {
       return;
     }
     setLoading(true);
+    setActiveMode("freshness");
 
     try {
       const location = await getLocation();
       console.log(location);
-      
+
       const response = await fetch(
-        "http://localhost:8000/api/v1/analyze_product_details",
+        "http://localhost:8000/api/v1/analyze_freshness",
         {
           method: "POST",
           headers: {
@@ -147,7 +149,6 @@ const ScanAnalyze = () => {
       if (response.ok) {
         console.log(data);
         setResult(data);
-
 
         // alert(data); // Display the message from Flask
       } else {
@@ -166,6 +167,7 @@ const ScanAnalyze = () => {
       return;
     }
     setLoading(true);
+    setActiveMode("details");
 
     try {
       const location = await getLocation();
@@ -195,8 +197,6 @@ const ScanAnalyze = () => {
     } catch (error) {
       setLoading(false);
     }
-
-    
   };
 
   return (
@@ -323,38 +323,91 @@ const ScanAnalyze = () => {
           <Table>
             <TableHead>
               <TableRow>
-                {/* <TableCell>ID</TableCell> */}
-                <TableCell>Product Name</TableCell>
-                <TableCell>Product Category</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Count</TableCell>
-                <TableCell>Expiry Date</TableCell>
-                <TableCell>Estimated Shelf Life</TableCell>
-                {/* <TableCell>Freshness</TableCell> */}
-                {/* <TableCell>Remark</TableCell> */}
+                {activeMode === "freshness" ? (
+                  <>
+                    <TableCell>Food</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Count</TableCell>
+                    <TableCell>Freshness</TableCell>
+                    <TableCell>Estimated Shelf Life</TableCell>
+                  </>
+                ) : (
+                  <>
+                    <TableCell>Product Name</TableCell>
+                    <TableCell>Product Category</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Count</TableCell>
+                    <TableCell>Expiry Date</TableCell>
+                    <TableCell>Estimated Shelf Life</TableCell>
+                  </>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
               {result.map((item, index) => (
                 <TableRow key={index}>
-                  <TableCell>{item.product_name === "NULL" ?"-":item.product_name|| "-"}</TableCell>
-                  <TableCell>{item.product_category==="NULL"?"-":item.product_category || "-"}</TableCell>
-                  <TableCell>{item.product_price === "NULL"?"-":item.product_price || "-"}</TableCell>
-                  <TableCell>{item.product_count || "-"}</TableCell>
-                  <TableCell>{item.expiry_date==="NULL"?"-":item.expiry_date || "-"}</TableCell>
-                  <TableCell>{item.estimated_shelf_life==="NULL"?"-":item.estimated_shelf_life || "-"}</TableCell>
+                  {activeMode === "freshness" ? (
+                    <>
+                      <TableCell>
+                        {item.food_name === "NULL"
+                          ? "-"
+                          : item.food_name || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.food_category === "NULL"
+                          ? "-"
+                          : item.food_category || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.food_price === "NULL"
+                          ? "-"
+                          : item.food_price || "-"}
+                      </TableCell>
+                      <TableCell>{item.food_count || "-"}</TableCell>
+                      <TableCell>
+                        {item.freshness === "NULL"
+                          ? "-"
+                          : item.freshness || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.estimated_shelf_life === "NULL"
+                          ? "-"
+                          : item.estimated_shelf_life || "-"}
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>
+                        {item.product_name === "NULL"
+                          ? "-"
+                          : item.product_name || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.product_category === "NULL"
+                          ? "-"
+                          : item.product_category || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.product_price === "NULL"
+                          ? "-"
+                          : item.product_price || "-"}
+                      </TableCell>
+                      <TableCell>{item.product_count || "-"}</TableCell>
+                      <TableCell>
+                        {item.expiry_date === "NULL"
+                          ? "-"
+                          : item.expiry_date || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.estimated_shelf_life === "NULL"
+                          ? "-"
+                          : item.estimated_shelf_life || "-"}
+                      </TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
-              {/* <TableRow>
-                <TableCell>{result.id || '-'}</TableCell>
-                <TableCell>{result.product_name || result.product || '-'}</TableCell>
-                <TableCell>{result.price || '-'}</TableCell>
-                <TableCell>{result.price || '-'}</TableCell>
-                <TableCell>{result.count || '-'}</TableCell>
-                <TableCell>{result.expiry_date || '-'}</TableCell>
-                <TableCell>{result.freshness || '-'}</TableCell>
-                <TableCell>{result.remark || '-'}</TableCell>
-              </TableRow> */}
             </TableBody>
           </Table>
         </TableContainer>
