@@ -213,6 +213,15 @@ def analyze_freshness():
 
     return jsonify({'error': 'No image provided'}), 400
 
+@app.route('/api/v1/get_product_details', methods=['GET'])
+def get_product_details():
+    response = dynamodb.fetch_all_products()
+    print(response)
+    if response["error"] == False:
+        return jsonify(response['data'])
+    else:
+        return jsonify({"message": "some error occured"})
+
 if __name__ == '__main__':
     # dynamodb.CreatATableFood()
     app.run(debug=True,port=8000)
