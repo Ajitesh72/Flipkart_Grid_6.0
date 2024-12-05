@@ -130,6 +130,34 @@ def bulk_insert_food(foods,city,zipcode):
             })
     return "success"
     
+def fetch_all_products():
+    result = {
+        "error": False,
+        "data": [], 
+    }
+    try:
+        # Reference the DynamoDB table
+        table = resource.Table('product')
+
+        # Scan the table to get all items
+        response = table.scan()
+
+        # Get the list of items
+        products = response["Items"]
+
+        # Handling pagination if more items exist
+        while 'LastEvaluatedKey' in response:
+            # Continue scanning to get the next set of results
+            response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+            products.extend(response["Items"])
+        result["error"] = False
+        result['data'] = products
+        return result
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        result['error'] = True
+        result['data'] = []
+        return result
 
 # def fetch_all_products():
 #     # Reference the DynamoDB table
