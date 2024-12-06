@@ -14,7 +14,7 @@ const ProductDetails = () => {
   const getAllProductDetails = async() => {
     setError(false);
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/get_product_details");
+      const response = await fetch("http://ec2-15-207-19-136.ap-south-1.compute.amazonaws.com/api/v1/get_product_details");
       if(response.ok){
         let data = await response.json();
         data = data.map(item => {
