@@ -64,12 +64,6 @@ def analyze_product_details():
         image_data = image_data.split(',')[1]  # Strip off data URL part
         image = Image.open(BytesIO(base64.b64decode(image_data)))
 
-        
-        imgId = str(uuid.uuid4())
-        filename = imgId+'.png'  # You can generate a unique name or use timestamps
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        image.save(filepath)
-        print(f"Image saved successfully at {filepath}")
 
 
 
@@ -141,11 +135,7 @@ def analyze_freshness():
         image_data = request.json['image']
         image_data = image_data.split(',')[1]  # Strip off data URL part
         image = Image.open(BytesIO(base64.b64decode(image_data)))
-        imgId = str(uuid.uuid4())
-        filename = imgId+'.png'  # You can generate a unique name or use timestamps
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        image.save(filepath)
-        print(f"Image saved successfully at {filepath}")
+        
 
 
 
@@ -234,5 +224,4 @@ def get_food_details():
         return jsonify({"message": "some error occured"})
 
 if __name__ == '__main__':
-    # dynamodb.CreatATableFood()
-    app.run(debug=True,port=8000)
+    app.run(host="0.0.0.0", port=8000)

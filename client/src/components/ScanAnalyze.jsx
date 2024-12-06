@@ -14,38 +14,6 @@ import {
 import CircularProgress from "@mui/material/CircularProgress";
 import { Upload, Camera } from "lucide-react";
 
-// const freshnessData = [
-//   {
-//     id: 1,
-//     product_name: "apple",
-//     freshness: "good",
-//     count: "1",
-//     remark: "It is a fresh apple",
-//   },
-//   {
-//     id: 2,
-//     product_name: "banana",
-//     freshness: "poor",
-//     count: "3",
-//     remark: "It is not fresh",
-//   },
-// ];
-
-// const productDetailsData = [
-//   {
-//     id: 1,
-//     product: "CORN FLAKES",
-//     count: 1,
-//     price: 20,
-//     expiry_date: "9 Months",
-//   },
-//   {
-//     id: 2,
-//     product: "Waffers",
-//     count: 29,
-//     remark: "Various snacks like Lay's and Kurkure are visible.",
-//   },
-// ];
 
 const getLocation = () =>
   new Promise((resolve, reject) => {
@@ -67,8 +35,9 @@ const ScanAnalyze = () => {
   const [result, setResult] = useState(null);
   const [image, setImage] = useState(null);
   const [activeMode, setActiveMode] = useState("");
-  // const [freshnessIndex, setFreshnessIndex] = useState(0);
-  // const [detailsIndex, setDetailsIndex] = useState(0);
+  const [facingMode, setFacingMode] = useState("environment"); // Default to back camera
+
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   var user = "";
@@ -88,16 +57,39 @@ const ScanAnalyze = () => {
       reader.onload = (e) => setImage(e.target.result);
       reader.readAsDataURL(file);
       setResult(null);
+  
+      // Stop the camera stream if it's active
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
     }
   };
 
   const handleCameraCapture = async () => {
+    setImage(null); // Clear the current image
+    setResult(null); // Clear previous results
+  
     if (videoRef.current) {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Stop any existing streams before starting a new one
+      if (videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+  
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode }, // Use the facingMode state
+      });
       videoRef.current.srcObject = stream;
       videoRef.current.play();
-      setResult(null);
     }
+  };
+
+  const toggleCamera = () => {
+    setFacingMode((prev) =>
+      prev === "environment" ? "user" : "environment"
+    );
   };
 
   const captureImage = () => {
@@ -105,19 +97,22 @@ const ScanAnalyze = () => {
     const video = videoRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
+  
     const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+  
     const imageUrl = canvas.toDataURL();
     setImage(imageUrl);
-
-    const stream = video.srcObject;
-    const tracks = stream.getTracks();
-    tracks.forEach((track) => track.stop());
-    video.srcObject = null;
+  
+    // Stop the stream after capturing the image
+    if (video.srcObject) {
+      const tracks = video.srcObject.getTracks();
+      tracks.forEach((track) => track.stop());
+      video.srcObject = null;
+    }
     setResult(null);
   };
+
 
   const handleAnalyzeFreshness = async () => {
     console.log("kuch");
@@ -266,6 +261,9 @@ const ScanAnalyze = () => {
 
         <Button variant="contained" sx={{ mt: 2 }} onClick={captureImage}>
           Capture Image
+        </Button>
+        <Button variant="contained" onClick={toggleCamera} sx={{ mt: 2 }}>
+          Flip Camera
         </Button>
 
         {!image && (
