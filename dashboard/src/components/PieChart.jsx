@@ -1,11 +1,55 @@
 import { ResponsivePie } from "@nivo/pie";
 import { tokens } from "../theme";
 import { useTheme } from "@mui/material";
+import React, { useState, useEffect } from "react";
 import { mockPieData as data } from "../data/mockData";
 
 const PieChart = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/v1/get_product_details"); // Adjust URL if needed
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const fetchedData = await response.json();
+  
+        // Group data by category and calculate total counts
+        const groupedData = fetchedData.reduce((acc, item) => {
+          if (!acc[item.product_category]) {
+            acc[item.product_category] = 0;
+          }
+          acc[item.product_category] += parseInt(item.product_count, 10) || 0;
+          return acc;
+        }, {});
+  
+        // Convert grouped data to an array and sort by count in descending order
+        const sortedData = Object.entries(groupedData)
+          .map(([category, count]) => ({
+            id: category,
+            label: category,
+            value: count,
+            color: `hsl(${Math.random() * 360}, 70%, 50%)`, // Optional: dynamic color
+          }))
+          .sort((a, b) => b.value - a.value); // Sort in descending order by count
+  
+        // Take the top 5 categories
+        const top5Categories = sortedData.slice(0, 5);
+  
+        setData(top5Categories);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
+  
   return (
     <ResponsivePie
       data={data}
