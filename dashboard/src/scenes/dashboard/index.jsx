@@ -12,10 +12,34 @@ import GeographyChart from "../../components/GeographyChart";
 import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
+import { useEffect, useState } from "react";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [productsScanned, setProductsScanned] = useState(0);
+  const [transactions, setTransactions] = useState([]);
+  useEffect(() => {
+    const fetchProductsData = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/v1/get_product_details");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        console.log("helllllllllllllllllllooooooooooooooo")
+        setTransactions(data.slice(0, 10));
+        setProductsScanned(data.length);
+        console.log(transactions)
+
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    fetchProductsData();
+  }, []); 
 
   return (
     <Box m="20px">
@@ -55,9 +79,9 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="15"
+            title={productsScanned}
             subtitle="Products Scanned"
-            progress="0.75"
+            progress="0.65"
             increase="+14%"
             icon={
               <EmailIcon
@@ -150,7 +174,7 @@ const Dashboard = () => {
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                Total Products analyzed for freshness: 20,000
+                Total Products analyzed for freshness: 132
               </Typography>
             </Box>
             <Box>
@@ -183,9 +207,9 @@ const Dashboard = () => {
               Recently Scanned Products
             </Typography>
           </Box>
-          {mockTransactions.map((transaction, i) => (
+          {transactions.map((transaction, i) => (
             <Box
-              key={`${transaction.txId}-${i}`}
+              key={`${transaction.city}-${i}`}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
@@ -198,19 +222,19 @@ const Dashboard = () => {
                   variant="h5"
                   fontWeight="600"
                 >
-                  {transaction.txId}
+                  {transaction.city}
                 </Typography>
                 <Typography color={colors.grey[100]}>
-                  {transaction.user}
+                  {transaction.product_category}
                 </Typography>
               </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
+              <Box color={colors.grey[100]}>{transaction.product_name}</Box>
               <Box
                 backgroundColor={colors.greenAccent[500]}
                 p="5px 10px"
                 borderRadius="4px"
               >
-                INR {transaction.cost}
+                INR {transaction.product_price !== "NULL"? transaction.product_price:"---" }
               </Box>
             </Box>
           ))}

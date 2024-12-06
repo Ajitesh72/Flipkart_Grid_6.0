@@ -63,7 +63,7 @@ def analyze_product_details():
         image_data = request.json['image']
         image_data = image_data.split(',')[1]  # Strip off data URL part
         image = Image.open(BytesIO(base64.b64decode(image_data)))
-        
+
 
 
 

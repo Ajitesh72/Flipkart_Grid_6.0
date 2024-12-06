@@ -1,34 +1,52 @@
-import { Box, Button, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../components/Header";
+import React, { useState } from "react";
 
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleFormSubmit = async (values) => {
+    const isAuthorized = false; // Simulate that the user is not authorized
 
-    try{
-      const response = await fetch("http://localhost:8080/api/members/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to create user");
-      }
-      const data = await response.json();
-      console.log("User created successfully:", data);
-    }catch(error){
-      console.error("Error creating user:", error);
-      alert("Failed to create user. Please try again.");
+    if (!isAuthorized) {
+      setOpenDialog(true); // Open the dialog if the user is not authorized
+      return; // Prevent form submission
     }
-    
+
+    // try{
+    //   const response = await fetch("http://localhost:8080/api/members/", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(values),
+    //   });
+    //   if (!response.ok) {
+    //     throw new Error("Failed to create user");
+    //   }
+    //   const data = await response.json();
+    //   console.log("User created successfully:", data);
+    // }catch(error){
+    //   console.error("Error creating user:", error);
+    //   alert("Failed to create user. Please try again.");
+    // }
 
     console.log(values);
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Close the dialog
   };
 
   return (
@@ -157,6 +175,21 @@ const Form = () => {
           </form>
         )}
       </Formik>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>Unauthorized Action</DialogTitle>
+        <DialogContent>
+          You are not authorized to add new members.
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseDialog}
+            color="error"
+            sx={{ color: "white" }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
@@ -181,7 +214,7 @@ const initialValues = {
   lastName: "",
   email: "",
   contact: "",
-  age:"",
+  age: "",
   address1: "",
   role: "",
 };

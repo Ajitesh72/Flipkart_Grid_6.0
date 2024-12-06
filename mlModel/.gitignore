@@ -1,4 +1,4 @@
 env/
 .env
 docker-compose.yaml
-__pycache__
+__pycache__/
