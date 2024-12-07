@@ -13,6 +13,14 @@
 **Inventory Dashboard:** https://inventory-dashboard.d3eoyvmyg9b5y3.amplifyapp.com/ 
 
 
+**Inventory Scanner Demo**
+
+![WhatsApp Image 2024-12-07 at 14 41 35_be7530e1](https://github.com/user-attachments/assets/07a203cc-6495-47c1-8328-3e580d5cc0c6)
+
+**Inventory Dashboard Demo**
+
+![image](https://github.com/user-attachments/assets/21d1333a-5890-4277-b011-117f8a4bd939)
+
 ---
 
 ## 📋 Executive Summary
