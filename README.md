@@ -10,12 +10,17 @@
 
 **Inventory Scanner:** https://inventory-scanning.dbbwrgx5bbx9c.amplifyapp.com/
 
-**Inventory Dashboard:** https://inventory-dashboard.d3eoyvmyg9b5y3.amplifyapp.com/ 
+(Credentials):
+
+Email:athsankhe@gmail.com, Password:ath123
+
+**Inventory Dashboard:** https://inventory-dashboard.d3eoyvmyg9b5y3.amplifyapp.com/
 
 
 **Inventory Scanner Demo**
 
 ![WhatsApp Image 2024-12-07 at 14 41 35_be7530e1](https://github.com/user-attachments/assets/07a203cc-6495-47c1-8328-3e580d5cc0c6)
+
 
 **Inventory Dashboard Demo**
 
@@ -77,7 +82,7 @@ Ensuring high standards of product quality is crucial for brand reputation, cust
 ## 🔗 Live Links
 
 - **Scanner Web Link**: [Scanner Link](https://inventory-scanning.dbbwrgx5bbx9c.amplifyapp.com/)  
-- **Admin Dashboard**: [Dashboard Link](https://inventory-dashboard.d1uda94nm3qxm3.amplifyapp.com/ )  
+- **Admin Dashboard**: [Dashboard Link](https://inventory-dashboard.d3eoyvmyg9b5y3.amplifyapp.com/)  
 
 ---
 
