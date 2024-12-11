@@ -128,7 +128,7 @@ const ScanAnalyze = () => {
       console.log(location);
 
       const response = await fetch(
-        "http://localhost:8000/api/v1/analyze_freshness",
+        "https://grid-flask-server.onrender.com/api/v1/analyze_freshness",
         {
           method: "POST",
           headers: {
@@ -168,7 +168,7 @@ const ScanAnalyze = () => {
       const location = await getLocation();
 
       const response = await fetch(
-        "http://localhost:8000/api/v1/analyze_product_details",
+        "https://grid-flask-server.onrender.com/api/v1/analyze_product_details",
         {
           method: "POST",
           headers: {

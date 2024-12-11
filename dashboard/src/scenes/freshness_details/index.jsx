@@ -14,7 +14,7 @@ const FreshnessDetails = () => {
   const getAllProductDetails = async() => {
     setError(false);
     try {
-      const response = await fetch("http://ec2-15-207-19-136.ap-south-1.compute.amazonaws.com/api/v1/get_product_details");
+      const response = await fetch("https://grid-flask-server.onrender.com/api/v1/get_food_details");
       if(response.ok){
         let data = await response.json();
         data = data.map(item => {
