@@ -12,7 +12,7 @@ const PieChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/get_product_details"); // Adjust URL if needed
+        const response = await fetch("https://grid-flask-server.onrender.com/api/v1/get_product_details"); // Adjust URL if needed
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
