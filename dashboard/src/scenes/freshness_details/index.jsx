@@ -39,6 +39,21 @@ const FreshnessDetails = () => {
   }, [])
   const columns = [
     {
+      field: "date",
+      headerName: "Date",
+      flex: 1,
+      // cellClassName: "name-column--cell",
+      headerAlign: "left",
+      align: "left",
+    },
+    {
+      field: "time",
+      headerName: "Time",
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+    },
+    {
       field: "food_name",
       headerName: "Product",
       flex: 1,

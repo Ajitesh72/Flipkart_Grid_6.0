@@ -90,7 +90,7 @@ def CreatATableFood():
 #     return response
 
 
-def bulk_insert_product(products,city,zipcode):
+def bulk_insert_product(products,city,zipcode, date, time):
     # Reference the DynamoDB table
     table = resource.Table('product')
 
@@ -106,14 +106,16 @@ def bulk_insert_product(products,city,zipcode):
                 'expiry_date': product['expiry_date'],
                 'estimated_shelf_life': product['estimated_shelf_life'],
                 'city': city,
-                'zipcode': zipcode
+                'zipcode': zipcode,
+                "date": date,
+                "time": time
             })
     return "success"
 
-def bulk_insert_food(foods,city,zipcode):
+def bulk_insert_food(foods,city,zipcode, date, time):
     # Reference the DynamoDB table
     table = resource.Table('food')
-
+    print("hello dynamo", date, time)
     # Using batch_writer to insert multiple items at once
     with table.batch_writer() as writer:
         for food in foods:
@@ -126,7 +128,9 @@ def bulk_insert_food(foods,city,zipcode):
                 'freshness': food['freshness'],
                 'estimated_shelf_life': food['estimated_shelf_life'],
                 'city': city,
-                'zipcode': zipcode
+                'zipcode': zipcode, 
+                "date": date, 
+                "time": time
             })
     return "success"
     

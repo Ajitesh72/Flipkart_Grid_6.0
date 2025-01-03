@@ -13,8 +13,21 @@ import {
 } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Upload, Camera } from "lucide-react";
-
-
+export function getDateAndTime(){
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+  const yyyy = today.getFullYear();
+  const date = `${dd} / ${mm} / ${yyyy}`;
+  const hour = today.getHours(); 
+  const minute = today.getMinutes(); 
+  const second = today.getSeconds();
+  const time = `${hour} : ${minute} : ${second}`;
+  return {
+      date,
+      time
+  };
+}
 const getLocation = () =>
   new Promise((resolve, reject) => {
     if (navigator.geolocation) {
@@ -37,7 +50,6 @@ const ScanAnalyze = () => {
   const [activeMode, setActiveMode] = useState("");
   const [facingMode, setFacingMode] = useState("environment"); // Default to back camera
 
-
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   var user = "";
@@ -57,7 +69,7 @@ const ScanAnalyze = () => {
       reader.onload = (e) => setImage(e.target.result);
       reader.readAsDataURL(file);
       setResult(null);
-  
+
       // Stop the camera stream if it's active
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
@@ -70,14 +82,14 @@ const ScanAnalyze = () => {
   const handleCameraCapture = async () => {
     setImage(null); // Clear the current image
     setResult(null); // Clear previous results
-  
+
     if (videoRef.current) {
       // Stop any existing streams before starting a new one
       if (videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
         tracks.forEach((track) => track.stop());
       }
-  
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode }, // Use the facingMode state
       });
@@ -87,9 +99,7 @@ const ScanAnalyze = () => {
   };
 
   const toggleCamera = () => {
-    setFacingMode((prev) =>
-      prev === "environment" ? "user" : "environment"
-    );
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
   };
 
   const captureImage = () => {
@@ -97,13 +107,13 @@ const ScanAnalyze = () => {
     const video = videoRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-  
+
     const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
     const imageUrl = canvas.toDataURL();
     setImage(imageUrl);
-  
+
     // Stop the stream after capturing the image
     if (video.srcObject) {
       const tracks = video.srcObject.getTracks();
@@ -112,7 +122,6 @@ const ScanAnalyze = () => {
     }
     setResult(null);
   };
-
 
   const handleAnalyzeFreshness = async () => {
     console.log("kuch");
@@ -126,7 +135,7 @@ const ScanAnalyze = () => {
     try {
       const location = await getLocation();
       console.log(location);
-
+      const {date, time} = getDateAndTime();
       const response = await fetch(
         "https://grid-flask-server.onrender.com/api/v1/analyze_freshness",
         {
@@ -137,6 +146,8 @@ const ScanAnalyze = () => {
           body: JSON.stringify({
             image: image,
             location: location, // Send the base64 image string
+            date,
+            time
           }),
         }
       );
@@ -166,7 +177,9 @@ const ScanAnalyze = () => {
 
     try {
       const location = await getLocation();
-
+      const {date, time} = getDateAndTime();
+      console.log(location);
+      
       const response = await fetch(
         "https://grid-flask-server.onrender.com/api/v1/analyze_product_details",
         {
@@ -177,6 +190,8 @@ const ScanAnalyze = () => {
           body: JSON.stringify({
             image: image,
             location: location, // Send the base64 image string
+            date,
+            time
           }),
         }
       );

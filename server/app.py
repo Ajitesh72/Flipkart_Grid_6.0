@@ -14,7 +14,9 @@ from decouple import config
 import json
 import typing_extensions as typing
 import PIL.Image
-
+import ssl
+import certifi
+import logging
 app = Flask(__name__)
 CORS(app)
 
@@ -28,27 +30,32 @@ class Product(typing.TypedDict):
 
 model = genai.GenerativeModel("gemini-1.5-pro-latest")
 GOOGLE_API_KEY=config("GOOGLE_API_KEY")
-genai.configure(api_key=GOOGLE_API_KEY)
 
+genai.configure(api_key=GOOGLE_API_KEY)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_location_from_coordinates(latitude, longitude):
-    geolocator = Nominatim(user_agent="atharvasankhe12@gmail.com")
+    geolocator = Nominatim(user_agent="atharvasankhe12@gmail.com", ssl_context=ssl.create_default_context(cafile=certifi.where()))
     location = geolocator.reverse((latitude, longitude), language='en')
     if location:
         return location.address
     return "Location not found"
+required_product_fields = ["product_name", "product_category", "product_count", "product_price", "expiry_date", "estimated_shelf_life"]
+required_food_fields = ["food_name", "food_category", "food_count", "food_price", "freshness", "estimated_shelf_life"]
+def add_missing_fields(data, required_fields):
+    fixed_data = []
 
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'images')
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
-
-# Function to check allowed image extensions
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    for item in data:
+        fixed_item = item.copy()
+        print()
+        
+        for field in required_fields:
+            if field not in fixed_item:  # Add missing fields with value "NULL"
+                fixed_item[field] = "NULL"
+        fixed_data.append(fixed_item)
+        print("fixed_item", fixed_item)
+    return fixed_data
 
 @app.route('/')
 def home():
@@ -56,9 +63,10 @@ def home():
 
 @app.route('/api/v1/analyze_product_details', methods=['POST'])
 def analyze_product_details():
+    # try:
     data = request.get_json()
     if 'image' in request.json:
-        
+        logging.info(GOOGLE_API_KEY)
         # Handle base64 image
         image_data = request.json['image']
         image_data = image_data.split(',')[1]  # Strip off data URL part
@@ -71,10 +79,9 @@ def analyze_product_details():
         print(f"Location: {located}")
         location = get_location_from_coordinates(located.get('latitude'),located.get('longitude'))
         location_parts = location.split(',')
-        exactLocation = [part.strip() for part in location_parts[-4:]]
         zipcode = location_parts[-2].strip()
         city = location_parts[-4].strip()
-        print(city)
+        logging.info(city)
 
 
         # model part
@@ -117,18 +124,27 @@ def analyze_product_details():
         )
         json_string_cleaned = result.text.strip().replace("```json", "").replace("```", "").strip()
         ans = json.loads(json_string_cleaned)
-        print(ans)
-
+        ans = add_missing_fields(ans, required_product_fields)
+        logging.info(ans)
+        date = "NA"
+        time = "NA"
+        if "date" in request.json:
+            date = request.json["date"]
+        if "time" in request.json:
+            time = request.json["time"]
         #send to dynamodb
-        dynamodb.bulk_insert_product(ans,city,zipcode)
+        dynamodb.bulk_insert_product(ans, city, zipcode, date, time)
         return jsonify(ans)
 
     return jsonify({'error': 'No image provided'}), 400
+    # except:
+    #     return jsonify({'error': 'Some error occured. please try again!'}), 402
 
 
 @app.route('/api/v1/analyze_freshness', methods=['POST'])
 def analyze_freshness():
     data = request.get_json()
+    # try:
     if 'image' in request.json:
         
         # Handle base64 image
@@ -143,10 +159,9 @@ def analyze_freshness():
         print(f"Location: {located}")
         location = get_location_from_coordinates(located.get('latitude'),located.get('longitude'))
         location_parts = location.split(',')
-        exactLocation = [part.strip() for part in location_parts[-4:]]
         zipcode = location_parts[-2].strip()
         city = location_parts[-4].strip()
-        print(city)
+        logging.info(city)
 
 
         # model part
@@ -197,18 +212,27 @@ def analyze_freshness():
         )
         json_string_cleaned = result.text.strip().replace("```json", "").replace("```", "").strip()
         ans = json.loads(json_string_cleaned)
-        print(ans)
-
+        ans = add_missing_fields(ans, required_food_fields)
+        logging.info(ans)
+        date = "NA"
+        time = "NA"
+        if "date" in request.json:
+            date = request.json["date"]
+        if "time" in request.json:
+            time = request.json["time"]
         #send to dynamodb
-        dynamodb.bulk_insert_food(ans,city,zipcode)
+        print(date, time)
+        dynamodb.bulk_insert_food(ans, city, zipcode, date, time)
         return jsonify(ans)
-
-    return jsonify({'error': 'No image provided'}), 400
+    else:
+        return jsonify({'error': 'No image provided'}), 400
+    # except:
+    #     return jsonify({'error': 'Some error occured. please try again!'}), 402
 
 @app.route('/api/v1/get_product_details', methods=['GET'])
 def get_product_details():
     response = dynamodb.fetch_all_products()
-    print(response)
+    
     if response["error"] == False:
         return jsonify(response['data'])
     else:
@@ -217,7 +241,6 @@ def get_product_details():
 @app.route('/api/v1/get_food_details', methods=['GET'])
 def get_food_details():
     response = dynamodb.fetch_all_foods()
-    print(response)
     if response["error"] == False:
         return jsonify(response['data'])
     else:
