@@ -10,6 +10,8 @@
 
 **Inventory Scanner:** https://inventory-scanning.dbbwrgx5bbx9c.amplifyapp.com/
 
+**Model Link:** https://huggingface.co/Ajitesh72/flipkart_products_finetune
+
 (Credentials):
 
 Email:athsankhe@gmail.com, Password:ath123
